@@ -1,0 +1,86 @@
+import pygame
+import random
+
+# Inizializza Pygame
+pygame.init()
+
+# Crea la finestra di gioco
+screen_width = 288
+screen_height = 512
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Flappy Bird")
+
+# Carica le immagini del gioco
+background_image = pygame.image.load("background.png").convert()
+ground_image = pygame.image.load("ground.png").convert()
+bird_images = [pygame.image.load("bird1.png").convert_alpha(), pygame.image.load("bird2.png").convert_alpha(), pygame.image.load("bird3.png").convert_alpha()]
+pipe_image = pygame.image.load("pipe.png").convert_alpha()
+
+# Imposta i parametri del gioco
+gravity = 0.25
+bird_movement = 0
+bird_rect = bird_images[0].get_rect(center=(50, screen_height/2))
+pipe_gap = 100
+pipe_spacing = 150
+pipe_list = []
+spawn_pipe_event = pygame.USEREVENT
+pygame.time.set_timer(spawn_pipe_event, 1200)
+score = 0
+font = pygame.font.Font("04B_19.ttf", 40)
+
+# Funzione per disegnare il punteggio
+def draw_score():
+    score_text = font.render(str(score), True, (255, 255, 255))
+    score_rect = score_text.get_rect(center=(screen_width/2, 50))
+    screen.blit(score_text, score_rect)
+
+# Funzione per disegnare gli oggetti del gioco
+def draw_objects():
+    screen.blit(background_image, (0, 0))
+    for pipe in pipe_list:
+        screen.blit(pipe_image, pipe)
+    screen.blit(ground_image, (0, screen_height-112))
+    rotated_bird = pygame.transform.rotate(bird_images[bird_index], -bird_movement*3)
+    screen.blit(rotated_bird, bird_rect)
+
+# Ciclo principale del gioco
+while True:
+    # Gestione degli eventi
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                bird_movement = 0
+                bird_movement -= 8
+        if event.type == spawn_pipe_event:
+            pipe_height = random.randint(100, 400)
+            bottom_pipe = pipe_image.get_rect(midtop=(screen_width+pipe_spacing, pipe_height+pipe_gap))
+            top_pipe = pipe_image.get_rect(midbottom=(screen_width+pipe_spacing, pipe_height))
+            pipe_list.append(bottom_pipe)
+            pipe_list.append(top_pipe)
+        if len(pipe_list) > 6:
+            pipe_list.pop(0)
+            pipe_list.pop(0)
+
+    # Aggiornamento della posizione degli oggetti del gioco
+    bird_movement += gravity
+    bird_rect.centery += bird_movement
+    if bird_rect.bottom >= screen_height-112:
+        bird_rect.bottom = screen_height-112
+        pygame.quit()
+        sys.exit()
+    if bird_rect.top <= 0:
+        bird_rect.top = 0
+    pipe_rect_list = []
+    for pipe in pipe_list:
+        pipe.centerx -= 5
+        if pipe.right <= 0:
+            pipe_rect_list.append(pipe)
+        if bird_rect.colliderect(pipe):
+            pygame.quit()
+            sys.exit()
+    for pipe_rect in pipe_rect_list:
+        pipe_list.remove(pipe_rect)
+        score +=
